@@ -1,0 +1,7 @@
+
+database = {
+    "username":"",
+    "password":"",
+    "host":"",
+    "name":""
+}
