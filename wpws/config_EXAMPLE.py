@@ -1,7 +1,7 @@
 
-database = {
-    "username":"",
-    "password":"",
-    "host":"",
-    "name":""
+DATABASE = {
+    'username': '',
+    'password': '',
+    'host': '',
+    'name': ''
 }

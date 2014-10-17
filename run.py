@@ -19,14 +19,14 @@
 """Script to initialize the webservice app and run the debug server."""
 
 from wpws import create_app
-from wpws.config import database
+from wpws.config import DATABASE
 
 config = {
     'SQLALCHEMY_DATABASE_URI':'postgresql://{}:{}@{}/{}'.format(
-        database['username'],
-        database['password'],
-        database['host'],
-        database['name']
+        DATABASE['username'],
+        DATABASE['password'],
+        DATABASE['host'],
+        DATABASE['name']
     )
 }
 
