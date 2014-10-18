@@ -5,3 +5,5 @@ DATABASE = {
     'host': '',
     'name': ''
 }
+
+SERVER = 'http://waveplot.net'
