@@ -17,20 +17,26 @@
 
 from wpws.config import SERVER
 
+
 def recording_url(gid):
     return SERVER + '/api/recording/{}'.format(gid)
+
 
 def release_url(gid):
     return SERVER + '/api/release/{}'.format(gid)
 
+
 def medium_url(_id):
     return SERVER + '/api/medium/{}'.format(_id)
+
 
 def artist_credit_url(_id):
     return SERVER + '/api/artist_credit/{}'.format(_id)
 
+
 def track_url(gid):
     return SERVER + '/api/track/{}'.format(gid)
+
 
 def waveplot_url(gid):
     return SERVER + '/api/waveplot/{}'.format(gid)
