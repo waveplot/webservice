@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from flask.ext.restful import Resource, reqparse
-from wpschema import Release, ReleaseRedirect
+from wpschema import Release, ReleaseRedirect, WavePlotContext
 
 from wpws import db
 from wpws.urls import artist_credit_url, release_url, medium_url
@@ -58,7 +58,8 @@ class ReleaseListResource(Resource):
     def get(self):
         args = self.get_parser.parse_args()
 
-        results = db.session.query(Release).order_by('name')
+        contexts = db.session.query(WavePlotContext.release_gid)
+        results = db.session.query(Release).order_by('name').filter(Release.gid.in_(contexts))
         results = results.offset(args.offset).limit(args.limit).all()
 
         res = {
