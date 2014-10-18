@@ -20,14 +20,13 @@ import datetime
 import uuid
 import zlib
 
-import wpschema
-import wpschema._waveplot
-
 import sqlalchemy.orm.exc
+from flask.ext.restful import Resource, reqparse, abort
+import wpschema._waveplot
+from wpschema import Editor, WavePlot, Edit, WavePlotContext
 
 from wpws import db, VERSION
-from wpschema import Editor, WavePlot, Edit
-from flask.ext.restful import Resource, reqparse, abort
+from wpws.urls import waveplot_url
 
 
 def _get_unique_gid():
@@ -80,17 +79,39 @@ class WavePlotListResource(Resource):
     get_parser.add_argument('limit', type=int, default=20)
     get_parser.add_argument('offset', type=int, default=0)
 
-    def get(self):
+    def get(self, track_gid=None, recording_gid=None, release_gid=None,
+            artist_credit_id=None):
         args = self.get_parser.parse_args()
 
         results = db.session.query(wpschema.WavePlot).order_by('gid')
-        results = results.offset(args.offset).limit(args.limit).all()
+        if track_gid is not None:
+            contexts = db.session.query(WavePlotContext).filter_by(
+                track_gid=track_gid
+            ).all()
+            results = [context.waveplot for context in contexts]
+        elif recording_gid is not None:
+            contexts = db.session.query(WavePlotContext).filter_by(
+                recording_gid=recording_gid).all()
+            results = [context.waveplot for context in contexts]
+        elif recording_gid is not None:
+            contexts = db.session.query(WavePlotContext).filter_by(
+                release_gid=release_gid
+            ).all()
+            results = [context.waveplot for context in contexts]
+        elif recording_gid is not None:
+            contexts = db.session.query(WavePlotContext).filter_by(
+                artist_credit_id=artist_credit_id
+            ).all()
+            results = [context.waveplot for context in contexts]
+        else:
+            results = results.offset(args.offset).limit(args.limit).all()
 
         res = {
             'start': args.offset,
             'count': len(results),
             'objects': [
                 {
+                    'url': waveplot_url(wp.gid),
                     'gid': str(wp.gid),
                     'duration': str(wp.duration),
                     'source_type': wp.source_type,
@@ -196,5 +217,10 @@ class WavePlotListResource(Resource):
 
 def create_api(api):
     api.add_resource(WavePlotResource, '/api/waveplot/<string:gid>')
-    api.add_resource(WavePlotListResource, '/api/waveplot')
-    #api.add_resource(Todo, '/todos/<string:todo_id>')
+    api.add_resource(
+        WavePlotListResource, '/api/waveplot',
+        '/api/track/<string:track_gid>/waveplots',
+        '/api/recording/<string:recording_gid>/waveplots',
+        '/api/release/<string:release_gid>/waveplots',
+        '/api/artist_credit/<string:artist_credit_id>/waveplots',
+    )

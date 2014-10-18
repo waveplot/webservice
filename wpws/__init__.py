@@ -49,6 +49,16 @@ def create_app(config):
     api = Api(app)
 
     import wpws.waveplot
+    import wpws.track
+    import wpws.recording
+    import wpws.release
+    import wpws.medium
+    import wpws.artist_credit
     wpws.waveplot.create_api(api)
+    wpws.track.create_api(api)
+    wpws.recording.create_api(api)
+    wpws.release.create_api(api)
+    wpws.medium.create_api(api)
+    wpws.artist_credit.create_api(api)
 
     return app
