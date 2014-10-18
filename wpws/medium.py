@@ -48,15 +48,15 @@ class MediumListResource(Resource):
     def get(self, release_gid=None):
         args = self.get_parser.parse_args()
 
-        results = db.session.query(Medium).order_by('id')
+        results = db.session.query(Medium)
 
         if release_gid is not None:
             release = db.session.query(Release).filter_by(
                 gid=release_gid
             ).one()
-            results = results.filter_by(release_id=release.id)
+            results = results.order_by('position').filter_by(release_id=release.id)
         else:
-            results = results.offset(args.offset).limit(args.limit)
+            results = results.order_by('id').offset(args.offset).limit(args.limit)
 
         results = results.all()
 

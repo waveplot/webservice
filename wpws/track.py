@@ -19,7 +19,7 @@ from flask.ext.restful import Resource, reqparse
 from wpschema import Track, TrackRedirect, Recording, WavePlotContext
 
 from wpws import db
-from wpws.urls import recording_url, medium_url, artist_credit_url, track_url
+from wpws.urls import recording_url, medium_url, artist_credit_url, track_url, release_url
 
 
 class TrackResource(Resource):
@@ -38,9 +38,22 @@ class TrackResource(Resource):
             'name': res.name,
             'length': res.length,
             'last_updated': str(res.last_updated),
-            'recording': recording_url(res.recording.gid),
-            'medium': medium_url(res.medium.id),
-            'artist_credit': artist_credit_url(res.artist_credit.id),
+            'recording': {
+                'url': recording_url(res.recording.gid),
+                'gid': res.recording.gid,
+            },
+            'medium': {
+                'url': medium_url(res.medium.id),
+                'id': res.medium.id,
+            },
+            'release': {
+                'url': release_url(res.medium.release.gid),
+                'gid': res.medium.release.gid,
+            },
+            'artist_credit': {
+                'url': artist_credit_url(res.artist_credit.id),
+                'id': res.artist_credit.id,
+            },
         }
 
         return res
@@ -55,24 +68,24 @@ class TrackListResource(Resource):
     def get(self, medium_id=None, waveplot_gid=None, recording_gid=None):
         args = self.get_parser.parse_args()
 
-        results = db.session.query(Track).order_by('name')
+        results = db.session.query(Track)
 
         if medium_id is not None:
-            results = results.filter_by(medium_id=medium_id)
+            results = results.order_by('position').filter_by(medium_id=medium_id)
         elif waveplot_gid is not None:
             results = db.session.query(Track).join(
                 WavePlotContext,
                 Track.gid == WavePlotContext.track_gid
-            ).filter(WavePlotContext.waveplot_gid == waveplot_gid)
+            ).order_by('name').filter(WavePlotContext.waveplot_gid == waveplot_gid)
         elif recording_gid is not None:
             recording = db.session.query(Recording).filter_by(
                 gid=recording_gid
             ).one()
-            results = db.session.query(Track).filter_by(
+            results = db.session.query(Track).order_by('name').filter_by(
                 recording_id=recording.id
             )
         else:
-            results = results.offset(args.offset).limit(args.limit)
+            results = results.order_by('name').offset(args.offset).limit(args.limit)
 
         results = results.all()
 
@@ -89,10 +102,23 @@ class TrackListResource(Resource):
                     'length': track.length,
                     'last_updated': str(track.last_updated),
                     'recording': recording_url(track.recording.gid),
-                    'medium': medium_url(track.medium.id),
+                    'medium': {
+                        'url': medium_url(track.medium.id),
+                        'id': track.medium.id,
+                    },
+                    'release': {
+                        'url': release_url(track.medium.release.gid),
+                        'gid': str(track.medium.release.gid),
+                        'name': track.medium.release.name,
+                    },
+                    'recording': {
+                        'url': recording_url(track.recording.gid),
+                        'gid': str(track.recording.gid),
+                    },
                     'artist_credit': {
                         'url': artist_credit_url(track.artist_credit.id),
                         'name': track.artist_credit.name,
+                        'id': track.artist_credit.id,
                     }
                 }
                 for track in results
