@@ -171,7 +171,10 @@ class WavePlotListResource(Resource):
         try:
             editor = editor.filter_by(key=args.key).one()
         except sqlalchemy.orm.exc.NoResultFound:
-            abort(403, message='No such editor key.')
+            abort(401, message='No such editor key.')
+
+        if not editor.active:
+            abort(401, message='Editor has not been activated.')
 
         wp = wpschema._waveplot.WavePlot()
         wp.full = zlib.decompress(base64.b64decode(args.data))
